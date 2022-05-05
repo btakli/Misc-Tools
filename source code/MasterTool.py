@@ -5,13 +5,6 @@ import sys
 
 def main():
     """Main method, uses argparse to parse commandline arguments to use the different tools"""
-    #Mapping of terms to functions
-    FUNCTION_MAP = {'webptopng' : webp_to_png,
-                    'asciiart' : ascii_art_generator,
-                    'flactomp3' : flac_to_mp3,
-                    'mp3towav' : mp3_to_wav,
-                    'mp4reencode' : mp4_reencode
-                    }
     #Descriptions of each tool based on the docstring
     helpList = []
     for key in FUNCTION_MAP:
