@@ -1,0 +1,5 @@
+pywhatkit #For ascii art generator
+ffmpeg-python #For audio/video
+Pillow #Converting webp to png
+argparse #Parsing arguments for commandline version
+PySimpleGUI #GUI

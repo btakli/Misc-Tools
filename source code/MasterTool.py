@@ -1,10 +1,7 @@
 from functions import *
 import os
-from PIL import Image
 import argparse
-import pywhatkit as kt
 import sys
-import ffmpeg
 
 def main():
     """Main method, uses argparse to parse commandline arguments to use the different tools"""
