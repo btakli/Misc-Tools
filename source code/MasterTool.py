@@ -1,7 +1,9 @@
-from functions import *
-import os
 import argparse
+import os
 import sys
+
+from functions import *
+
 
 def main():
     """Main method, uses argparse to parse commandline arguments to use the different tools"""

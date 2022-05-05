@@ -1,5 +1,7 @@
-from functions import *
 import PySimpleGUI as sg
+
+from functions import *
+
 
 def main():
     
