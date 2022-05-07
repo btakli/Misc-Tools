@@ -1,6 +1,6 @@
 import PySimpleGUI as sg
 
-from functions import *
+from tools import functions
 
 
 def main():
@@ -15,8 +15,8 @@ def main():
     ]
 
     toolList = []
-    for key in FUNCTION_MAP:
-            toolList.append(sg.Button(button_text=key,tooltip=FUNCTION_MAP[key].__doc__))
+    for key in functions.FUNCTION_MAP:
+            toolList.append(sg.Button(button_text=key,tooltip=functions.FUNCTION_MAP[key].__doc__))
     
     #Column listing tools
     tools_column = [
@@ -46,8 +46,8 @@ def main():
             break
         elif event == '-FOLDER-':
             folder = values["-FOLDER-"]
-        elif event in FUNCTION_MAP:
-            toolCalled = FUNCTION_MAP[event]
+        elif event in functions.FUNCTION_MAP:
+            toolCalled = functions.FUNCTION_MAP[event]
             toolCalled(folder)
         
 
