@@ -31,11 +31,11 @@ def main():
             sg.VSeperator(),
             sg.Column(tools_column),
             sg.VSeperator(),
-            sg.Output(background_color='black',text_color='green', size=(200,400))
+            sg.Output(background_color='black',text_color='green', size=(800,800))
         ]
     ]
 
-    window = sg.Window("Tool Selector", layout,size=(1200, 300))
+    window = sg.Window("Tool Selector", layout,size=(1600, 600))
 
     folder = './'
     while True:
