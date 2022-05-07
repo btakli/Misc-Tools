@@ -64,6 +64,10 @@ def ascii_art_generator(dir: str):
             print("Converting " + file + " to ascii art\n")
             kt.image_to_ascii_art(dir + '/' + file,outputDir + '/' + file.replace(".jpg",""))
             fileCount += 1
+        if file.endswith(".jpeg"):
+            print("Converting " + file + " to ascii art\n")
+            kt.image_to_ascii_art(dir + '/' + file,outputDir + '/' + file.replace(".jpeg",""))
+            fileCount += 1
     print(f"Finished generating ASCII art for {fileCount} files.")
 
 
