@@ -35,7 +35,7 @@ def main():
         ]
     ]
 
-    window = sg.Window("Tool Selector", layout,size=(1600, 600))
+    window = sg.Window("Tool Selector", layout,size=(1600, 600),resizable=True)
 
     folder = './'
     while True:
