@@ -48,7 +48,7 @@ def main():
             folder = values["-FOLDER-"]
         elif event in functions.FUNCTION_MAP:
             toolCalled = functions.FUNCTION_MAP[event]
-            toolCalled(folder)
+            toolCalled(folder,True)
         
 
     window.close()
