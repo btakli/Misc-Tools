@@ -27,5 +27,5 @@ jobs:
       - name: PyInstaller Windows
         uses: JackMcKew/pyinstaller-action-windows@v0.1.2
         with:
-          path: "./source code/MasterTool (GUI).spec"
-
+          path: ""source code""
+          spec: "MasterTool (GUI).spec"
