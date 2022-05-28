@@ -1,4 +1,5 @@
 import os
+import re
 
 import ffmpeg
 import pywhatkit as kt
@@ -21,7 +22,11 @@ def youtube_to_mp4(dir: str, isGui : bool = False):
     print(f"Downloading video \"{yt_title}\" as an mp4 AND mp3 in the folder {outputDir}")
     yt = yt.streams.filter(progressive=True, file_extension='mp4').order_by('resolution').desc().first()
     yt.download(outputDir)
-    filePath = f"{outputDir}/{yt_title}.mp4"
+
+    yt_titleStripped = re.sub('[#%&{}\<>*?/$!\'":@+`|=]', '', yt_title) #Stripped of invalid chars (emojis, etc.)
+    filePath = f"{outputDir}/{yt_titleStripped}.mp4"
+    
+    print(f"file name {yt_titleStripped}")
     ffmpeg.input(filePath).output(filePath.replace('.mp4','.mp3')).run()
     print("Done!")
     
