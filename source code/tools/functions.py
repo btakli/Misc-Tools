@@ -114,11 +114,42 @@ def webp_to_png(dir: str, isGui : bool = False):
                 os.remove(f)
     print(f"Finished converting {fileCount} files from .webp to .png")
 
+def add_images_to_pdf(dir:str, isGui : bool = False):
+    """Add all images (.png, .jpg, .jpeg) to a PDF bearing the name of the folder. 
+    Puts it in the parent directory."""
+    folder_name = dir.split("\\")[-1]
+
+    if os.path.isdir(dir):
+        print(f"Examining if PDF should be created for folder {folder_name}")
+        image_list = []
+
+        for file in sorted(os.listdir(dir)):
+            file = os.path.join(dir,file)
+            if file.endswith((".jpg",".jpeg",".png")):
+                image_list.append(Image.open(file).convert("RGB"))
+
+        print(f"{len(image_list)} images found...")
+
+        if len(image_list) > 1:
+            print("Creating PDF...")
+
+            pdf_name = f"{folder_name}.pdf"
+            parent_directory = os.path.join(dir,"../")
+            pdf_path = os.path.join(parent_directory, pdf_name)
+
+            image_list[0].save(pdf_path,resolution=100.0,save_all=True, append_images=image_list[1:])
+
+            print(f"PDF {pdf_path} created.")
+        else:
+            print("Not enough images to warrant PDF creation, exiting...")
+            exit(0)
+
 #Mapping of terms to functions
 FUNCTION_MAP = {'webptopng' : webp_to_png,
                 'asciiart' : ascii_art_generator,
                 'flactomp3' : flac_to_mp3,
                 'mp3towav' : mp3_to_wav,
                 'mp4reencode' : mp4_reencode,
-                'youtubetomp4' : youtube_to_mp4
+                'youtubetomp4' : youtube_to_mp4,
+                'addimagestopdf' : add_images_to_pdf
                 }
