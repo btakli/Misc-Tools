@@ -135,7 +135,7 @@ def add_images_to_pdf(dir: str, isGui: bool = False):
 
         for file in sorted(os.listdir(dir)):
             file = os.path.join(dir, file)
-            if file.endswith((".jpg", ".jpeg", ".png")):
+            if file.lower().endswith((".jpg", ".jpeg", ".png")):
                 image_list.append(Image.open(file).convert("RGB"))
 
         print(f"{len(image_list)} images found...")
