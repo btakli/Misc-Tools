@@ -1,4 +1,6 @@
 # Misc-Tools
+[![Python application](https://github.com/btakli/Misc-Tools/actions/workflows/python-app.yml/badge.svg)](https://github.com/btakli/Misc-Tools/actions/workflows/python-app.yml)
+
 Contains both a CLI and GUI version, simple combination of various tools I have been asked to create by friends/used myself over the years. 
 GUI version added for less technically savvy individuals.
 
