@@ -126,7 +126,7 @@ def webp_to_png(dir: str, isGui: bool = False):
 
 
 def add_images_to_pdf(dir: str, isGui: bool = False):
-    """Add all images (.png, .jpg, .jpeg) to a PDF bearing the name of the folder. 
+    """Add all images (.png, .jpg, .jpeg) to a PDF bearing the name of the folder.
     Puts it in the parent directory."""
     folder_name = dir.split("\\")[-1]
 
