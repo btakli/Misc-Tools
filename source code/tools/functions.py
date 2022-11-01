@@ -6,6 +6,7 @@ import pywhatkit as kt
 from PIL import Image
 from pytube import YouTube
 import PySimpleGUI as sg
+import natsort
 
 
 def youtube_to_mp4(dir: str, isGui: bool = False):
@@ -133,8 +134,10 @@ def add_images_to_pdf(dir: str, isGui: bool = False):
         print(f"Examining if PDF should be created for folder {folder_name}")
         image_list = []
 
-        for file in sorted(os.listdir(dir)):
+        for file in natsort.natsorted(os.listdir(dir)):
+            print(file)
             file = os.path.join(dir, file)
+
             if file.lower().endswith((".jpg", ".jpeg", ".png")):
                 image_list.append(Image.open(file).convert("RGB"))
 
