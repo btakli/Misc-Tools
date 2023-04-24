@@ -23,7 +23,17 @@ def main():
     tools_column = [
         [sg.Text("Choose a tool to use on the selected folder")]
     ]
-    tools_column.append(toolList)
+
+    # add the tools to the tools column, 5 per row
+    tool_row = []
+    for i in range(0, len(toolList)):
+        tool_row.append(toolList[i])
+        if i % 5 == 0 and i != 0:
+            tools_column.append(tool_row)
+            tool_row = []
+    
+    # add the last row of tools
+    tools_column.append(tool_row)
 
     # ----- Full layout -----
     layout = [

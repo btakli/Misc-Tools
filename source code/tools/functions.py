@@ -2,11 +2,12 @@ import os
 import re
 
 import ffmpeg
+import natsort
+import PySimpleGUI as sg
 import pywhatkit as kt
 from PIL import Image
+from PyPDF2 import PdfReader, PdfWriter
 from pytube import YouTube
-import PySimpleGUI as sg
-import natsort
 
 
 def youtube_to_mp4(dir: str, isGui: bool = False):
@@ -159,6 +160,57 @@ def add_images_to_pdf(dir: str, isGui: bool = False):
             exit(0)
 
 
+def order_double_sided_scan(dir: str, isGui: bool = False):
+    """Takes PDFs of a double sided scan, where you do one pass of the front and then one pass of the back (just flip the stack over) and save it in the same PDF. orders the pages so that they are in the correct order.
+
+    NOTE: If there are multiple PDFs in the directory, it will do all of them.
+
+    Files are saved as <original filename>_ordered.pdf"""
+    folder_name = dir.split("\\")[-1]
+    if os.path.isdir(dir):
+        # Scan for PDFs
+        pdf_list = []
+        for file in os.listdir(dir):
+            file = os.path.join(dir, file)
+            if file.lower().endswith((".pdf")) and not file.lower().endswith(("_ordered.pdf")): # Ignore already ordered PDFs
+                pdf_list.append(file)
+        
+        print(f"Found {len(pdf_list)} PDFs in directory {folder_name}...")
+        for pdf in pdf_list:
+            print(pdf)
+
+        if len(pdf_list) > 0:
+            # If there are multiple PDFs, ask the user which one to use
+            for pdf in pdf_list:
+                print(f"Performing operation on {pdf}")
+                # Open the PDF
+                pdf_file = open(pdf, 'rb')
+                pdf_reader = PdfReader(pdf_file)
+                pdf_writer = PdfWriter()
+
+                # Get the number of pages in the PDF
+                num_pages = len(pdf_reader.pages)
+
+                # If the number of pages is odd, It was scanned incorrectly
+                if num_pages % 2 != 0:
+                    print(f"Odd number of pages for PDF {pdf}, meaning it cannot be a true double sided scan! Skipping...")
+                    exit(0)
+
+                # Order the pages so that they are in the correct order. The scan order is all the front pages, then all the back pages, so we need to reorder them so that they are in the correct order.
+                for i in range(0, num_pages // 2):
+                    pdf_writer.add_page(pdf_reader.pages[i])
+                    pdf_writer.add_page(pdf_reader.pages[num_pages - i - 1])
+                
+                # Save the PDF
+                output_filename = f'{pdf.split(".")[0]}_ordered.pdf'
+                with open(output_filename, 'wb') as out:
+                    pdf_writer.write(out)
+                print(f"PDF saved as {output_filename}")
+        else:
+            print("No PDFs found, exiting...")
+            exit(0)
+
+
 # Mapping of terms to functions
 FUNCTION_MAP = {'webptopng': webp_to_png,
                 'asciiart': ascii_art_generator,
@@ -166,5 +218,6 @@ FUNCTION_MAP = {'webptopng': webp_to_png,
                 'mp3towav': mp3_to_wav,
                 'mp4reencode': mp4_reencode,
                 'youtubetomp4': youtube_to_mp4,
-                'addimagestopdf': add_images_to_pdf
+                'addimagestopdf': add_images_to_pdf,
+                'orderdoublesidedscan': order_double_sided_scan
                 }
