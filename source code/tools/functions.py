@@ -34,8 +34,13 @@ def youtube_to_mp4(dir: str, isGui: bool = False):
     filePath = f"{outputDir}/{yt_titleStripped}.mp4"
 
     print(f"file name {yt_titleStripped}")
-    ffmpeg.input(filePath).output(filePath.replace('.mp4', '.mp3')).run()
-    print("Done!")
+    try:
+        ffmpeg.input(filePath).output(filePath.replace('.mp4', '.mp3')).run()
+    except ffmpeg.Error:
+        print(
+            f"Could not convert \"{yt_titleStripped}.mp4\" to \"{yt_titleStripped}.mp3\"")
+    else:
+        print("Done!")
 
 
 def mp4_reencode(dir: str, isGui: bool = False):
@@ -58,7 +63,10 @@ def mp4_reencode(dir: str, isGui: bool = False):
 
     for mp4 in mp4s:
         print(f"Reencoding {mp4}")
-        ffmpeg.input(mp4).output(mp4.replace(dir, outputDir)).run()
+        try:
+            ffmpeg.input(mp4).output(mp4.replace(dir, outputDir)).run()
+        except:
+            print(f"Failed to reencode {mp4}")
         print("Done!")
 
 
@@ -83,8 +91,11 @@ def mp3_to_wav(dir: str, isGui: bool = False):
 
     for mp3 in mp3s:
         print(f"Converting {mp3} to wav")
-        ffmpeg.input(mp3).output(mp3.replace(
-            dir, outputDir).replace(".mp3", ".wav")).run()
+        try:
+            ffmpeg.input(mp3).output(mp3.replace(
+                dir, outputDir).replace(".mp3", ".wav")).run()
+        except:
+            print(f"Could not convert {mp3}")
         print("Done!")
 
 
@@ -109,8 +120,11 @@ def flac_to_mp3(dir: str, isGui: bool = False):
 
     for flac in flacs:
         print(f"Converting {flac} to mp3")
-        ffmpeg.input(flac).output(flac.replace(
-            dir, outputDir).replace(".flac", ".mp3")).run()
+        try:
+            ffmpeg.input(flac).output(flac.replace(
+                dir, outputDir).replace(".flac", ".mp3")).run()
+        except:
+            print("Error converting file, skipping")
         print("Done!")
 
 
@@ -137,6 +151,8 @@ def ascii_art_generator(dir: str, isGui: bool = False):
             kt.image_to_ascii_art(
                 dir + '/' + file, outputDir + '/' + file.replace(".jpeg", ""))
             fileCount += 1
+        else:
+            print("Skipping " + file + " as it is not a jpg, jpeg or png")
     print(f"Finished generating ASCII art for {fileCount} files.")
 
 
@@ -150,10 +166,13 @@ def webp_to_png(dir: str, isGui: bool = False):
 
             if (".webp" in f):
                 print(f)
-                im = Image.open(f).convert("RGBA")
-                im.save(f.replace(".webp", ".png"), "png")
-                fileCount += 1
-                os.remove(f)
+                try:
+                    im = Image.open(f).convert("RGBA")
+                    im.save(f.replace(".webp", ".png"), "png")
+                    fileCount += 1
+                    os.remove(f)
+                except:
+                    print(f"Error converting {f} to .png")
     print(f"Finished converting {fileCount} files from .webp to .png")
 
 
@@ -189,6 +208,10 @@ def add_images_to_pdf(dir: str, isGui: bool = False):
         else:
             print("Not enough images to warrant PDF creation, exiting...")
             return
+    else:
+        print(f"Directory {dir} does not exist, exiting...")
+        return
+
 
 
 def order_double_sided_scan(dir: str, isGui: bool = False):
