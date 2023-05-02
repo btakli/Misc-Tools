@@ -43,13 +43,23 @@ def mp4_reencode(dir: str, isGui: bool = False):
     outputDir = dir + '/reencoded_mp4s'
     if not os.path.isdir(outputDir):
         os.makedirs(outputDir)
+
+    # Check for any mp4s in the directory
+    mp4s = []
     for filename in os.listdir(dir):
         f = os.path.join(dir, filename)
         if os.path.isfile(f):
             if (".mp4" in f):
-                print('Reincoding ' + filename)
-                ffmpeg.input(f).output(outputDir + '/' + filename).run()
-                print("Done!")
+                mp4s.append(f)
+    print(f"Found {len(mp4s)} mp4s in the directory {dir}")
+    if len(mp4s) == 0:
+        print("No mp4s found, terminating...")
+        return
+
+    for mp4 in mp4s:
+        print(f"Reencoding {mp4}")
+        ffmpeg.input(mp4).output(mp4.replace(dir, outputDir)).run()
+        print("Done!")
 
 
 def mp3_to_wav(dir: str, isGui: bool = False):
@@ -58,14 +68,24 @@ def mp3_to_wav(dir: str, isGui: bool = False):
     if not os.path.isdir(outputDir):
         os.makedirs(outputDir)
 
+    # Check for any mp3s in the directory
+    mp3s = []
     for filename in os.listdir(dir):
         f = os.path.join(dir, filename)
         if os.path.isfile(f):
             if (".mp3" in f):
-                print("Converting " + filename + " to wav")
-                ffmpeg.input(f).output(outputDir + '/' +
-                                       filename.replace('.mp3', '.wav')).run()
-                print("Done!")
+                mp3s.append(f)
+
+    print(f"Found {len(mp3s)} mp3s in the directory {dir}")
+    if len(mp3s) == 0:
+        print("No mp3s found, terminating...")
+        return
+
+    for mp3 in mp3s:
+        print(f"Converting {mp3} to wav")
+        ffmpeg.input(mp3).output(mp3.replace(
+            dir, outputDir).replace(".mp3", ".wav")).run()
+        print("Done!")
 
 
 def flac_to_mp3(dir: str, isGui: bool = False):
@@ -74,13 +94,24 @@ def flac_to_mp3(dir: str, isGui: bool = False):
     if not os.path.isdir(outputDir):
         os.makedirs(outputDir)
 
+    # Check for any flacs in the directory
+    flacs = []
     for filename in os.listdir(dir):
         f = os.path.join(dir, filename)
         if os.path.isfile(f):
             if (".flac" in f):
-                print("Converting " + filename + " to mp3")
-                ffmpeg.input(f).output(outputDir + '/' +
-                                       filename.replace('.flac', '.mp3')).run()
+                flacs.append(f)
+
+    print(f"Found {len(flacs)} flacs in the directory {dir}")
+    if len(flacs) == 0:
+        print("No flacs found, terminating...")
+        return
+
+    for flac in flacs:
+        print(f"Converting {flac} to mp3")
+        ffmpeg.input(flac).output(flac.replace(
+            dir, outputDir).replace(".flac", ".mp3")).run()
+        print("Done!")
 
 
 def ascii_art_generator(dir: str, isGui: bool = False):
@@ -157,11 +188,12 @@ def add_images_to_pdf(dir: str, isGui: bool = False):
             print(f"PDF {pdf_path} created.")
         else:
             print("Not enough images to warrant PDF creation, exiting...")
-            exit(0)
+            return
 
 
 def order_double_sided_scan(dir: str, isGui: bool = False):
-    """Takes PDFs of a double sided scan, where you do one pass of the front and then one pass of the back (just flip the stack over) and save it in the same PDF. orders the pages so that they are in the correct order.
+    """Takes PDFs of a double sided scan, where you do one pass of the front and then one pass of the back (just flip the stack over)
+    and save it in the same PDF. orders the pages so that they are in the correct order.
 
     NOTE: If there are multiple PDFs in the directory, it will do all of them.
 
@@ -172,9 +204,9 @@ def order_double_sided_scan(dir: str, isGui: bool = False):
         pdf_list = []
         for file in os.listdir(dir):
             file = os.path.join(dir, file)
-            if file.lower().endswith((".pdf")) and not file.lower().endswith(("_ordered.pdf")): # Ignore already ordered PDFs
+            if file.lower().endswith((".pdf")) and not file.lower().endswith(("_ordered.pdf")):  # Ignore already ordered PDFs
                 pdf_list.append(file)
-        
+
         print(f"Found {len(pdf_list)} PDFs in directory {folder_name}...")
         for pdf in pdf_list:
             print(pdf)
@@ -193,14 +225,15 @@ def order_double_sided_scan(dir: str, isGui: bool = False):
 
                 # If the number of pages is odd, It was scanned incorrectly
                 if num_pages % 2 != 0:
-                    print(f"Odd number of pages for PDF {pdf}, meaning it cannot be a true double sided scan! Skipping...")
-                    exit(0)
+                    print(
+                        f"Odd number of pages for PDF {pdf}, meaning it cannot be a true double sided scan! Skipping...")
+                    continue
 
                 # Order the pages so that they are in the correct order. The scan order is all the front pages, then all the back pages, so we need to reorder them so that they are in the correct order.
                 for i in range(0, num_pages // 2):
                     pdf_writer.add_page(pdf_reader.pages[i])
                     pdf_writer.add_page(pdf_reader.pages[num_pages - i - 1])
-                
+
                 # Save the PDF
                 output_filename = f'{pdf.split(".")[0]}_ordered.pdf'
                 with open(output_filename, 'wb') as out:
@@ -208,7 +241,7 @@ def order_double_sided_scan(dir: str, isGui: bool = False):
                 print(f"PDF saved as {output_filename}")
         else:
             print("No PDFs found, exiting...")
-            exit(0)
+            return
 
 
 # Mapping of terms to functions
