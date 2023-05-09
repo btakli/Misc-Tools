@@ -12,6 +12,11 @@ from pytube import YouTube
 
 def youtube_to_mp4(dir: str, isGui: bool = False):
     """Download a YouTube video as an mp4 (and mp3) to the selected directory"""
+    
+    if not os.path.isdir(dir):
+        print(f"Directory {dir} does not exist, terminating...")
+        return
+    
     outputDir = dir + '/Youtube to MP4'
     if not os.path.isdir(outputDir):
         os.makedirs(outputDir)
@@ -45,6 +50,11 @@ def youtube_to_mp4(dir: str, isGui: bool = False):
 
 def mp4_reencode(dir: str, isGui: bool = False):
     """Reencode all mp4s in directory in case there are issues"""
+    
+    if not os.path.isdir(dir):
+        print(f"Directory {dir} does not exist, terminating...")
+        return
+    
     outputDir = dir + '/reencoded_mp4s'
     if not os.path.isdir(outputDir):
         os.makedirs(outputDir)
@@ -72,6 +82,11 @@ def mp4_reencode(dir: str, isGui: bool = False):
 
 def mp3_to_wav(dir: str, isGui: bool = False):
     """Converts all mp3s in a directory to wavs, stores them in a ./wav directory"""
+    
+    if not os.path.isdir(dir):
+        print(f"Directory {dir} does not exist, terminating...")
+        return
+    
     outputDir = dir + '/wavs'
     if not os.path.isdir(outputDir):
         os.makedirs(outputDir)
@@ -101,6 +116,11 @@ def mp3_to_wav(dir: str, isGui: bool = False):
 
 def flac_to_mp3(dir: str, isGui: bool = False):
     """Converts all flacs in a directory to mp3s, stores them in a ./mp3 directory"""
+    
+    if not os.path.isdir(dir):
+        print(f"Directory {dir} does not exist, terminating...")
+        return
+    
     outputDir = dir + '/mp3s'
     if not os.path.isdir(outputDir):
         os.makedirs(outputDir)
@@ -130,6 +150,10 @@ def flac_to_mp3(dir: str, isGui: bool = False):
 
 def ascii_art_generator(dir: str, isGui: bool = False):
     """Create an ascii art version of all jpgs and pngs in a directory, stored in ./ascii"""
+    if not os.path.isdir(dir):
+        print(f"Directory {dir} does not exist, terminating...")
+        return
+    
     outputDir = dir + '/ascii'
     fileCount = 0
     if not os.path.isdir(outputDir):
@@ -181,37 +205,36 @@ def add_images_to_pdf(dir: str, isGui: bool = False):
     Puts it in the parent directory."""
     folder_name = dir.split("\\")[-1]
 
-    if os.path.isdir(dir):
-        print(f"Examining if PDF should be created for folder {folder_name}")
-        image_list = []
-
-        for file in natsort.natsorted(os.listdir(dir)):
-            print(file)
-            file = os.path.join(dir, file)
-
-            if file.lower().endswith((".jpg", ".jpeg", ".png")):
-                image_list.append(Image.open(file).convert("RGB"))
-
-        print(f"{len(image_list)} images found...")
-
-        if len(image_list) > 1:
-            print("Creating PDF...")
-
-            pdf_name = f"{folder_name}.pdf"
-            parent_directory = os.path.join(dir, "../")
-            pdf_path = os.path.join(parent_directory, pdf_name)
-
-            image_list[0].save(pdf_path, resolution=100.0,
-                               save_all=True, append_images=image_list[1:])
-
-            print(f"PDF {pdf_path} created.")
-        else:
-            print("Not enough images to warrant PDF creation, exiting...")
-            return
-    else:
-        print(f"Directory {dir} does not exist, exiting...")
+    if not os.path.isdir(dir):
+        print(f"Directory {dir} does not exist, terminating...")
         return
+    
+    print(f"Examining if PDF should be created for folder {folder_name}")
+    image_list = []
 
+    for file in natsort.natsorted(os.listdir(dir)):
+        print(file)
+        file = os.path.join(dir, file)
+
+        if file.lower().endswith((".jpg", ".jpeg", ".png")):
+            image_list.append(Image.open(file).convert("RGB"))
+
+    print(f"{len(image_list)} images found...")
+
+    if len(image_list) > 1:
+        print("Creating PDF...")
+
+        pdf_name = f"{folder_name}.pdf"
+        parent_directory = os.path.join(dir, "../")
+        pdf_path = os.path.join(parent_directory, pdf_name)
+
+        image_list[0].save(pdf_path, resolution=100.0,
+                            save_all=True, append_images=image_list[1:])
+
+        print(f"PDF {pdf_path} created.")
+    else:
+        print("Not enough images to warrant PDF creation, exiting...")
+        return
 
 
 def order_double_sided_scan(dir: str, isGui: bool = False):
@@ -221,50 +244,138 @@ def order_double_sided_scan(dir: str, isGui: bool = False):
     NOTE: If there are multiple PDFs in the directory, it will do all of them.
 
     Files are saved as <original filename>_ordered.pdf"""
+    if not os.path.isdir(dir):
+        print(f"Directory {dir} is invalid. Exiting...")
+        return
+    
     folder_name = dir.split("\\")[-1]
-    if os.path.isdir(dir):
-        # Scan for PDFs
-        pdf_list = []
-        for file in os.listdir(dir):
-            file = os.path.join(dir, file)
-            if file.lower().endswith((".pdf")) and not file.lower().endswith(("_ordered.pdf")):  # Ignore already ordered PDFs
-                pdf_list.append(file)
+    
+    # Scan for PDFs
+    pdf_list = []
+    for file in os.listdir(dir):
+        file = os.path.join(dir, file)
+        if file.lower().endswith((".pdf")) and not file.lower().endswith(("_ordered.pdf")):  # Ignore already ordered PDFs
+            pdf_list.append(file)
 
-        print(f"Found {len(pdf_list)} PDFs in directory {folder_name}...")
+    print(f"Found {len(pdf_list)} PDFs in directory {folder_name}...")
+    for pdf in pdf_list:
+        print(pdf)
+
+    if len(pdf_list) > 0:
+        # If there are multiple PDFs, ask the user which one to use
         for pdf in pdf_list:
-            print(pdf)
+            print(f"Performing operation on {pdf}")
+            # Open the PDF
+            pdf_file = open(pdf, 'rb')
+            pdf_reader = PdfReader(pdf_file)
+            pdf_writer = PdfWriter()
 
-        if len(pdf_list) > 0:
-            # If there are multiple PDFs, ask the user which one to use
-            for pdf in pdf_list:
-                print(f"Performing operation on {pdf}")
-                # Open the PDF
-                pdf_file = open(pdf, 'rb')
-                pdf_reader = PdfReader(pdf_file)
-                pdf_writer = PdfWriter()
+            # Get the number of pages in the PDF
+            num_pages = len(pdf_reader.pages)
 
-                # Get the number of pages in the PDF
-                num_pages = len(pdf_reader.pages)
+            # If the number of pages is odd, It was scanned incorrectly
+            if num_pages % 2 != 0:
+                print(
+                    f"Odd number of pages for PDF {pdf}, meaning it cannot be a true double sided scan! Skipping...")
+                continue
 
-                # If the number of pages is odd, It was scanned incorrectly
-                if num_pages % 2 != 0:
-                    print(
-                        f"Odd number of pages for PDF {pdf}, meaning it cannot be a true double sided scan! Skipping...")
-                    continue
+            # Order the pages so that they are in the correct order. The scan order is all the front pages, then all the back pages, so we need to reorder them so that they are in the correct order.
+            for i in range(0, num_pages // 2):
+                pdf_writer.add_page(pdf_reader.pages[i])
+                pdf_writer.add_page(pdf_reader.pages[num_pages - i - 1])
 
-                # Order the pages so that they are in the correct order. The scan order is all the front pages, then all the back pages, so we need to reorder them so that they are in the correct order.
-                for i in range(0, num_pages // 2):
-                    pdf_writer.add_page(pdf_reader.pages[i])
-                    pdf_writer.add_page(pdf_reader.pages[num_pages - i - 1])
+            # Save the PDF
+            output_filename = f'{pdf.split(".")[0]}_ordered.pdf'
+            with open(output_filename, 'wb') as out:
+                pdf_writer.write(out)
+            print(f"PDF saved as {output_filename}")
+    else:
+        print("No PDFs found, exiting...")
+        return
 
-                # Save the PDF
-                output_filename = f'{pdf.split(".")[0]}_ordered.pdf'
-                with open(output_filename, 'wb') as out:
-                    pdf_writer.write(out)
-                print(f"PDF saved as {output_filename}")
-        else:
-            print("No PDFs found, exiting...")
-            return
+
+def compress_mp4_crf(dir: str, isGui: bool = False):
+    """Compresses all mp4 files in a directory to a CRF of 28 using h264. 
+    It will reduce the quality of the video.
+    Lower CRF = Higher quality, larger file size. 
+    I wouldn't go beyond 30.
+
+    Saves to a directory called "compressed" in the same directory as the input directory. Appends "_compressed_crf##" to the filename.
+    Note: Will skip a file if it already exists in the compressed directory with the same name/crf.
+    """
+    if not os.path.isdir(dir):
+        print(f"Directory {dir} is invalid. Exiting...")
+        return
+    
+
+    files_to_compress = []
+
+    crf_message = "Please input a desired integer CRFvalue (default 28, stick from [20,30]. Lower = higher quality = bigger file). Enter nothing for default: "
+
+    if isGui:
+        crf = sg.popup_get_text(crf_message)
+    else:
+        crf = input(crf_message)
+
+    try:
+        crf = int(crf or "28")  # Default to 28 if nothing is entered.
+    except:
+        print("Invalid CRF, exiting...")
+        return
+
+    print(f"Using CRF {crf}")
+
+    # Find valid files
+    for filename in os.listdir(dir):
+        if os.path.isfile(os.path.join(dir, filename)):
+            if (".mp4" in filename):
+                files_to_compress.append(filename)
+
+    print(
+        f"Found {len(files_to_compress)} candidate files in {dir} to compress with CRF {crf}")
+
+    if len(files_to_compress) == 0:
+        print("No files found, exiting...")
+        return
+
+    # Make the compressed directory
+    if not os.path.exists(f"{dir}/compressed"):
+        os.makedirs(f"{dir}/compressed")
+
+    # Check if the file already exists in the compressed directory
+    files_to_skip = []
+    for filename in files_to_compress:
+        if os.path.isfile(os.path.join(dir, "compressed", f"{filename.split('.')[0]}_compressed_crf{crf}.mp4")):
+            print(
+                f"File {filename} already exists in compressed directory at crf {crf}, skipping...")
+            files_to_skip.append(filename)
+
+    print(
+        f"Found {len(files_to_skip)} already compressed files with CRF {crf}")
+
+    files_to_compress = [
+        file for file in files_to_compress if file not in files_to_skip]
+
+    print(f"Compressing {len(files_to_compress)} files with CRF {crf}:")
+
+    for filename in files_to_compress:
+        f = os.path.join(dir, filename)
+        # checking if it is a file
+        print(f"Compressing {filename}")
+        output_dir = os.path.join(dir, "compressed")
+        try:
+            process = ffmpeg.input(f).output(
+                os.path.join(dir, "compressed", f"{filename.split('.')[0]}_compressed_crf{crf}.mp4"), crf=crf).run_async()
+            # wait for the process to finish
+            process.wait()
+
+            print(f"Finished compressing {filename}")
+        except:
+            print(f"Error converting {f}")
+            continue
+
+    print(
+        f"Finished compressing {len(files_to_compress)} files with CRF {crf}")
 
 
 # Mapping of terms to functions
@@ -275,5 +386,6 @@ FUNCTION_MAP = {'webptopng': webp_to_png,
                 'mp4reencode': mp4_reencode,
                 'youtubetomp4': youtube_to_mp4,
                 'addimagestopdf': add_images_to_pdf,
-                'orderdoublesidedscan': order_double_sided_scan
+                'orderdoublesidedscan': order_double_sided_scan,
+                'compressmp4crf': compress_mp4_crf
                 }
