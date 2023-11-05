@@ -2,6 +2,17 @@ import PySimpleGUI as sg
 
 from tools import functions
 
+def operate_on_tool(toolCalled, window, folder='./'):
+    """Function that calls the tool that was selected. Includes potential special logic related to needed popups so they can run in the main thread."""
+    if toolCalled == functions.FUNCTION_MAP['compressmp4crf']:
+        crf_message = "Please input a desired integer CRFvalue (default 28, stick from [20,30]. Lower = higher quality = bigger file). Enter nothing for default: "
+        crf = sg.popup_get_text(crf_message)
+        window.start_thread(lambda: toolCalled(folder, True, crf), ('-THREAD-', '-THEAD ENDED-'))
+    elif toolCalled == functions.FUNCTION_MAP['youtubetomp4']:
+        link = sg.popup_get_text("Please provide a YouTube link:")
+        window.start_thread(lambda: toolCalled(folder, True, link), ('-THREAD-', '-THEAD ENDED-'))
+    else:
+        window.start_thread(lambda: toolCalled(folder, True), ('-THREAD-', '-THEAD ENDED-'))
 
 def main():
 
@@ -52,7 +63,7 @@ def main():
 
     folder = './'
     while True:
-        event, values = window.read()
+        event, values = window.read(timeout=100)
         # End program if user closes window or
         # presses the OK button
         if event == sg.WIN_CLOSED:
@@ -61,7 +72,12 @@ def main():
             folder = values["-FOLDER-"]
         elif event in functions.FUNCTION_MAP:
             toolCalled = functions.FUNCTION_MAP[event]
-            toolCalled(folder, True)
+            operate_on_tool(toolCalled, window, folder)
+        
+        elif event == '-THREAD-':
+            print('Thread started')
+        elif event == '-THEAD ENDED-':
+            print('Thread ended')
 
     window.close()
 

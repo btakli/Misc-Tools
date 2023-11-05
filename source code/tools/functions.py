@@ -1,6 +1,6 @@
 import os
 import re
-
+from tqdm import tqdm
 import ffmpeg
 import natsort
 import PySimpleGUI as sg
@@ -10,7 +10,7 @@ from PyPDF2 import PdfReader, PdfWriter
 from pytube import YouTube
 
 
-def youtube_to_mp4(dir: str, isGui: bool = False):
+def youtube_to_mp4(dir: str, isGui: bool = False, linkFromGui: str = None):
     """Download a YouTube video as an mp4 (and mp3) to the selected directory"""
     
     if not os.path.isdir(dir):
@@ -25,7 +25,7 @@ def youtube_to_mp4(dir: str, isGui: bool = False):
         link = input("Please provide a YouTube link:")
     else:
         # I would have liked to have abstracted this better...
-        link = sg.popup_get_text("Please provide a YouTube link:")
+        link = linkFromGui
     yt = YouTube(link)
     yt_title = yt.title
     print(
@@ -70,14 +70,24 @@ def mp4_reencode(dir: str, isGui: bool = False):
     if len(mp4s) == 0:
         print("No mp4s found, terminating...")
         return
+    
+    errors = []
 
-    for mp4 in mp4s:
-        print(f"Reencoding {mp4}")
-        try:
-            ffmpeg.input(mp4).output(mp4.replace(dir, outputDir)).run()
-        except:
-            print(f"Failed to reencode {mp4}")
-        print("Done!")
+    with tqdm(total=len(mp4s)) as pbar:
+        for mp4 in mp4s:
+            print(f"Reencoding {mp4}")
+            try:
+                ffmpeg.input(mp4).output(mp4.replace(dir, outputDir)).run()
+            except:
+                print(f"Failed to reencode {mp4}")
+            pbar.update(1)
+            print("Done!")
+
+    print(f"Successfully reencoded {len(mp4s)-len(errors)}/{len(mp4s)} files")
+    if len(errors) > 0:
+        print(f"Failed to reencode {len(errors)} files:")
+        for error in errors:
+            print("\t" + error)
 
 
 def mp3_to_wav(dir: str, isGui: bool = False):
@@ -104,14 +114,24 @@ def mp3_to_wav(dir: str, isGui: bool = False):
         print("No mp3s found, terminating...")
         return
 
-    for mp3 in mp3s:
-        print(f"Converting {mp3} to wav")
-        try:
-            ffmpeg.input(mp3).output(mp3.replace(
-                dir, outputDir).replace(".mp3", ".wav")).run()
-        except:
-            print(f"Could not convert {mp3}")
-        print("Done!")
+    errors = []
+    with tqdm(total=len(mp3s)) as pbar:
+        for mp3 in mp3s:
+            print(f"Converting {mp3} to wav")
+            try:
+                ffmpeg.input(mp3).output(mp3.replace(
+                    dir, outputDir).replace(".mp3", ".wav")).run()
+            except:
+                print(f"Could not convert {mp3}")
+                errors.append(mp3)
+            print("Done!")
+            pbar.update(1)
+    
+    print(f"Successfully converted {len(mp3s)-len(errors)}/{len(mp3s)} files")
+    if len(errors) > 0:
+        print(f"Failed to convert {len(errors)} files:")
+        for error in errors:
+            print("\t" + error)
 
 
 def flac_to_mp3(dir: str, isGui: bool = False):
@@ -138,14 +158,24 @@ def flac_to_mp3(dir: str, isGui: bool = False):
         print("No flacs found, terminating...")
         return
 
-    for flac in flacs:
-        print(f"Converting {flac} to mp3")
-        try:
-            ffmpeg.input(flac).output(flac.replace(
-                dir, outputDir).replace(".flac", ".mp3")).run()
-        except:
-            print("Error converting file, skipping")
-        print("Done!")
+    errors = []
+    with tqdm(total=len(flacs)) as pbar:
+        for flac in flacs:
+            print(f"Converting {flac} to mp3")
+            try:
+                ffmpeg.input(flac).output(flac.replace(
+                    dir, outputDir).replace(".flac", ".mp3")).run()
+            except:
+                print("Error converting file, skipping")
+                errors.append(flac)
+            print("Done!")
+            pbar.update(1)
+    
+    print(f"Successfully converted {len(flacs)-len(errors)}/{len(flacs)} files")
+    if len(errors) > 0:
+        print(f"Failed to convert {len(errors)} files:")
+        for error in errors:
+            print("\t" + error)
 
 
 def ascii_art_generator(dir: str, isGui: bool = False):
@@ -294,7 +324,7 @@ def order_double_sided_scan(dir: str, isGui: bool = False):
         return
 
 
-def compress_mp4_crf(dir: str, isGui: bool = False):
+def compress_mp4_crf(dir: str, isGui: bool = False, crfFromGui: int = None):
     """Compresses all mp4 files in a directory to a CRF of 28 using h264. 
     It will reduce the quality of the video.
     Lower CRF = Higher quality, larger file size. 
@@ -313,7 +343,7 @@ def compress_mp4_crf(dir: str, isGui: bool = False):
     crf_message = "Please input a desired integer CRFvalue (default 28, stick from [20,30]. Lower = higher quality = bigger file). Enter nothing for default: "
 
     if isGui:
-        crf = sg.popup_get_text(crf_message)
+        crf = crfFromGui
     else:
         crf = input(crf_message)
 
@@ -358,24 +388,31 @@ def compress_mp4_crf(dir: str, isGui: bool = False):
 
     print(f"Compressing {len(files_to_compress)} files with CRF {crf}:")
 
-    for filename in files_to_compress:
-        f = os.path.join(dir, filename)
-        # checking if it is a file
-        print(f"Compressing {filename}")
-        output_dir = os.path.join(dir, "compressed")
-        try:
-            process = ffmpeg.input(f).output(
-                os.path.join(dir, "compressed", f"{filename.split('.')[0]}_compressed_crf{crf}.mp4"), crf=crf).run_async()
-            # wait for the process to finish
-            process.wait()
+    errors = []
 
-            print(f"Finished compressing {filename}")
-        except:
-            print(f"Error converting {f}")
-            continue
+    with tqdm(total=len(files_to_compress)) as pbar:
+        for filename in files_to_compress:
+            f = os.path.join(dir, filename)
+            # checking if it is a file
+            print(f"\nCompressing {filename}")
+            output_dir = os.path.join(dir, "compressed")
+            try:
+                process = ffmpeg.input(f).output(
+                    os.path.join(dir, "compressed", f"{filename.split('.')[0]}_compressed_crf{crf}.mp4"), crf=crf, loglevel="quiet").run_async()
+                process.wait()
+                print(f"Finished compressing {filename}")
+            except:
+                print(f"Error converting {f}")
+                errors.append(f)
+            pbar.update(1)
+            print("")  # Print a newline after the progress bar
 
     print(
-        f"Finished compressing {len(files_to_compress)} files with CRF {crf}")
+        f"Successfully compressed {len(files_to_compress)-len(errors)}/{len(files_to_compress)} files with CRF {crf}")
+    if len(errors) > 0:
+        print(f"Failed to compress {len(errors)} files:")
+        for error in errors:
+            print("\t" + error)
 
 
 # Mapping of terms to functions
